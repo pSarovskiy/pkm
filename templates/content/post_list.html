@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+  {% if category %}<h1>Категория: {{ category.name }}</h1>{% endif %}
+  {% if tag %}<h1>Тег: {{ tag.name }}</h1>{% endif %}
+
+  <div class="post-list">
+    {% for post in page_obj %}
+      <article class="post-card">
+        <h2><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
+        <div class="post-meta">
+          {{ post.author }} · {{ post.published_at|date:"d.m.Y" }}
+          {% if post.category %} · <a href="{% url 'category_detail' post.category.slug %}">{{ post.category.name }}</a>{% endif %}
+        </div>
+        <p>{{ post.excerpt|default:post.content|truncatewords:40 }}</p>
+      </article>
+    {% empty %}
+      <p>Записей не найдено.</p>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+    <div class="pagination">
+      {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">&laquo; Назад</a>{% endif %}
+      <span>Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Вперёд &raquo;</a>{% endif %}
+    </div>
+  {% endif %}
+{% endblock %}
