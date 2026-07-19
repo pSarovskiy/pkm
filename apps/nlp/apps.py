@@ -1,7 +1,0 @@
-from django.apps import AppConfig
-
-
-class NlpConfig(AppConfig):
-    default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.nlp"
-    verbose_name = "NLP-анализ"
