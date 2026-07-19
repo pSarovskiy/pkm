@@ -1,0 +1,99 @@
+## docker-compose.prod.yml -- PRODUCTION
+##
+## В отличие от docker-compose.yml (dev), здесь исходники не монтируются
+## с хоста -- они запекаются в образ на этапе сборки. Приложение отдаётся
+## через gunicorn за nginx, static/media лежат в именованных томах,
+## общих для web и nginx.
+##
+## Запуск:
+##   docker compose -f docker-compose.prod.yml up --build -d
+##   docker compose -f docker-compose.prod.yml exec web python manage.py createsuperuser
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-pgvector.sql:/docker-entrypoint-initdb.d/init-pgvector.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # No "ports:" mapping -- the database is reachable only from other
+    # containers on the compose network, not from the host/internet.
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      args:
+        NLP_SPACY_MODEL: ${NLP_SPACY_MODEL:-en_core_web_sm}
+        NLP_EMBEDDING_MODEL: ${NLP_EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: myproject.settings.production
+    volumes:
+      - static_data:/app/static
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    expose:
+      - "8000"
+
+  celery:
+    build:
+      context: .
+      args:
+        NLP_SPACY_MODEL: ${NLP_SPACY_MODEL:-en_core_web_sm}
+        NLP_EMBEDDING_MODEL: ${NLP_EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+    restart: unless-stopped
+    entrypoint: ["/entrypoint.prod.sh"]
+    command: ["celery", "-A", "myproject", "worker", "-l", "info", "--concurrency=2"]
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: myproject.settings.production
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_data:/app/static:ro
+      - media_data:/app/media:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_data:
+  media_data:

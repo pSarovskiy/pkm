@@ -1,0 +1,86 @@
+## docker-compose.yml -- РЕЖИМ РАЗРАБОТКИ
+##
+## Исходники монтируются с хоста (bind mount `.:/app`), поэтому файлы
+## можно редактировать прямо в Windows (VS Code, PyCharm и т.д.) --
+## изменения сразу видны внутри контейнера, а runserver перезапускается
+## автоматически. Для production используйте docker-compose.prod.yml.
+##
+## Запуск:
+##   copy .env.example .env      (Windows PowerShell/cmd)
+##   docker compose up --build
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wagtail}
+      POSTGRES_USER: ${POSTGRES_USER:-wagtail}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wagtail}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-pgvector.sql:/docker-entrypoint-initdb.d/init-pgvector.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wagtail}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      args:
+        NLP_SPACY_MODEL: ${NLP_SPACY_MODEL:-en_core_web_sm}
+        NLP_EMBEDDING_MODEL: ${NLP_EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+    restart: unless-stopped
+    entrypoint: ["bash", "docker/entrypoint.dev.sh"]
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: myproject.settings.dev
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery:
+    build:
+      context: .
+      args:
+        NLP_SPACY_MODEL: ${NLP_SPACY_MODEL:-en_core_web_sm}
+        NLP_EMBEDDING_MODEL: ${NLP_EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+    restart: unless-stopped
+    entrypoint: ["bash", "docker/entrypoint.dev.sh"]
+    command: ["celery", "-A", "myproject", "worker", "-l", "info"]
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: myproject.settings.dev
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
