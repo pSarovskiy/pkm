@@ -1,0 +1,7 @@
+{% load wagtailcore_tags %}
+<nav class="breadcrumbs" aria-label="Хлебные крошки">
+    {% for ancestor in page.get_ancestors|slice:"1:" %}
+        <a href="{% pageurl ancestor %}">{{ ancestor.title }}</a>
+    {% endfor %}
+    › <span>{{ page.title }}</span>
+</nav>

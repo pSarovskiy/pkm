@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block body_class %}template-newsindexpage{% endblock %}
+
+{% block content %}
+{% include "news/includes/breadcrumbs.html" %}
+
+<main class="main">
+    <h1>{{ page.title }}</h1>
+
+    {% if page.intro %}
+        <div class="intro">{{ page.intro|richtext }}</div>
+    {% endif %}
+
+    <nav class="news-filters">
+        <a href="{% pageurl page %}"{% if not current_category_slug and not current_location_slug %} class="active"{% endif %}>Все</a>
+        {% for cat in categories %}
+            <a href="{{ page.url }}с/{{ cat.slug }}/"{% if cat.slug == current_category_slug %} class="active"{% endif %}>{{ cat.name }}</a>
+        {% endfor %}
+        {% for loc in locations %}
+            <a href="{{ page.url }}l/{{ loc.slug }}/"{% if loc.slug == current_location_slug %} class="active"{% endif %}>{{ loc.name }}</a>
+        {% endfor %}
+    </nav>
+
+    <div class="news-list">
+        {% for news in news_pages %}
+            <article class="news-list__item">
+                {% if news.main_image %}
+                    <a href="{% pageurl news %}">
+                        {% image news.main_image fill-300x200 %}
+                    </a>
+                {% endif %}
+
+                <h2><a href="{% pageurl news %}">{{ news.title }}</a></h2>
+                <p class="news-list__meta">
+                    {{ news.date }} · {{ news.reading_time_minutes }} мин
+                    {% if news.location %} · {{ news.location.name }}{% endif %}
+                </p>
+
+                {% if news.intro %}
+                    <p>{{ news.intro }}</p>
+                {% endif %}
+
+                {% if news.categories.all %}
+                    <p class="news-list__categories">
+                        {% for cat in news.categories.all %}
+                            <a href="{{ page.url }}с/{{ cat.slug }}/">{{ cat.name }}</a>
+                        {% endfor %}
+                    </p>
+                {% endif %}
+
+                {% if news.tags.all %}
+                    <p class="news-list__tags">
+                        {% for tag in news.tags.all %}
+                            <a href="{{ page.url }}t/{{ tag.slug }}/">#{{ tag.name }}</a>
+                        {% endfor %}
+                    </p>
+                {% endif %}
+            </article>
+        {% empty %}
+            <p>Новостей пока нет.</p>
+        {% endfor %}
+    </div>
+
+    {% if news_pages.has_other_pages %}
+    <nav class="pagination">
+        {% if news_pages.has_previous %}
+            <a href="?page={{ news_pages.previous_page_number }}">Назад</a>
+        {% endif %}
+        <span>Страница {{ news_pages.number }} из {{ news_pages.paginator.num_pages }}</span>
+        {% if news_pages.has_next %}
+            <a href="?page={{ news_pages.next_page_number }}">Вперёд</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+</main>
+{% endblock %}

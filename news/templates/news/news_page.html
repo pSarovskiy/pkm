@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block body_class %}template-newspage{% endblock %}
+
+{% block extra_meta %}
+{{ block.super }}
+{% if page.main_image %}
+    {% image page.main_image width-1200 as og_image %}
+    <meta property="og:image" content="{{ og_image.url }}" />
+{% endif %}
+<meta property="og:type" content="article" />
+{% endblock %}
+
+{% block content %}
+{% include "news/includes/breadcrumbs.html" %}
+
+<article class="news-page">
+    <h1>{{ page.title }}</h1>
+
+    <p class="news-page__meta">
+        {{ page.date }} · {{ page.reading_time_minutes }} мин чтения
+        {% if page.author %} · {{ page.author.name }}{% endif %}
+        {% if page.location %} · {{ page.location.name }}{% endif %}
+        · {{ page.views_count }} просмотров
+    </p>
+
+    {% if page.categories.all %}
+        <p class="news-page__categories">
+            {% for cat in page.categories.all %}
+                <a href="{{ page.get_parent.specific.url }}с/{{ cat.slug }}/">{{ cat.name }}</a>
+            {% endfor %}
+        </p>
+    {% endif %}
+
+    {% if page.main_image %}
+        {% image page.main_image fill-800x450 %}
+    {% endif %}
+
+    {% if page.intro %}
+        <p class="news-page__intro">{{ page.intro }}</p>
+    {% endif %}
+
+    {% include_block page.body %}
+
+    {% if page.gallery_images.all %}
+        <div class="news-page__gallery">
+            {% for item in page.gallery_images.all %}
+                <figure>
+                    {% image item.image fill-300x200 %}
+                    {% if item.caption %}
+                        <figcaption>{{ item.caption }}</figcaption>
+                    {% endif %}
+                </figure>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if page.author %}
+        <div class="news-page__author">
+            {% if page.author.photo %}{% image page.author.photo fill-80x80 %}{% endif %}
+            <div>
+                <strong>{{ page.author.name }}</strong>
+                {% if page.author.position %}<p>{{ page.author.position }}</p>{% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if page.source_name %}
+        <p class="news-page__source">
+            Источник:
+            {% if page.source_url %}
+                <a href="{{ page.source_url }}" rel="nofollow noopener" target="_blank">{{ page.source_name }}</a>
+            {% else %}
+                {{ page.source_name }}
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if page.tags.all %}
+        <p class="news-page__tags">
+            {% for tag in page.tags.all %}
+                <a href="{{ page.get_parent.specific.url }}t/{{ tag.slug }}/">#{{ tag.name }}</a>
+            {% endfor %}
+        </p>
+    {% endif %}
+</article>
+
+{% if related_news %}
+<section class="news-page__related">
+    <h3>Читайте также</h3>
+    {% for item in related_news %}
+        <a href="{% pageurl item %}">{{ item.title }}</a>
+    {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,7 @@
+{% load wagtailimages_tags %}
+<figure class="stream-image">
+    {% image self.image fill-800x450 %}
+    {% if self.caption %}
+        <figcaption>{{ self.caption }}</figcaption>
+    {% endif %}
+</figure>
