@@ -170,10 +170,14 @@ class NewsIndexPage(RoutablePageMixin, Page):
             news = news.filter(location__slug=location_slug)
         return news
 
-    def get_context(self, request, category_slug=None, tag_slug=None, location_slug=None):
+    def get_context(self, request, *args, **kwargs):
         from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
-        context = super().get_context(request)
+        category_slug = kwargs.get("category_slug")
+        tag_slug = kwargs.get("tag_slug")
+        location_slug = kwargs.get("location_slug")
+
+        context = super().get_context(request, *args, **kwargs)
         news = self._build_news_queryset(category_slug, tag_slug, location_slug)
 
         paginator = Paginator(news, 12)
@@ -199,15 +203,15 @@ class NewsIndexPage(RoutablePageMixin, Page):
 
     @route(r"^с/(?P<category_slug>[-\w]+)/$")
     def category_route(self, request, category_slug):
-        return self.serve(request, category_slug=category_slug)
+        return self.render(request, context_overrides={"category_slug": category_slug})
 
     @route(r"^t/(?P<tag_slug>[-\w]+)/$")
     def tag_route(self, request, tag_slug):
-        return self.serve(request, tag_slug=tag_slug)
+        return self.render(request, context_overrides={"tag_slug": tag_slug})
 
     @route(r"^l/(?P<location_slug>[-\w]+)/$")
     def location_route(self, request, location_slug):
-        return self.serve(request, location_slug=location_slug)
+        return self.render(request, context_overrides={"location_slug": location_slug})
 
 
 # --- Форма редактирования поста: авто-подстановка и ограничение доступа
