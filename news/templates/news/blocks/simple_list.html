@@ -1,0 +1,13 @@
+{% if self.ordered %}
+    <ol class="simple-list ordered">
+        {% for item in self.items %}
+            <li>{{ item }}</li>
+        {% endfor %}
+    </ol>
+{% else %}
+    <ul class="simple-list unordered">
+        {% for item in self.items %}
+            <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}

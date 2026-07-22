@@ -1,0 +1,10 @@
+<ul class="checklist">
+    {% for item in self.items %}
+        <li class="checklist-item">
+            <label>
+                <input type="checkbox" {% if item.checked %}checked{% endif %} disabled>
+                {{ item.label }}
+            </label>
+        </li>
+    {% endfor %}
+</ul>

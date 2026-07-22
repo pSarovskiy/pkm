@@ -1,0 +1,6 @@
+<div class="callout callout-{{ self.type }}">
+    {% if self.icon %}
+        <span class="callout-icon {{ self.icon }}"></span>
+    {% endif %}
+    <div class="callout-text">{{ self.text|richtext }}</div>
+</div>

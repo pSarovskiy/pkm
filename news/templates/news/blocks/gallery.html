@@ -1,0 +1,15 @@
+{% load wagtailimages_tags %}
+
+<div class="gallery-block">
+    <div class="gallery-grid">
+        {% for image_block in self.images %}
+            <figure class="gallery-item">
+                {% image image_block.image fill-400x300 as img %}
+                <img src="{{ img.url }}" alt="{{ img.alt }}" loading="lazy">
+                {% if image_block.caption %}
+                    <figcaption>{{ image_block.caption }}</figcaption>
+                {% endif %}
+            </figure>
+        {% endfor %}
+    </div>
+</div>

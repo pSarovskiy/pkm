@@ -1,0 +1,18 @@
+<div class="pros-cons">
+    <div class="pros">
+        <h4>✅ Плюсы</h4>
+        <ul>
+            {% for item in self.pros %}
+                <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="cons">
+        <h4>❌ Минусы</h4>
+        <ul>
+            {% for item in self.cons %}
+                <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

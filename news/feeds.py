@@ -9,7 +9,11 @@ class NewsFeed(Feed):
     description = "Последние новости о недвижимости"
 
     def items(self):
-        return NewsPage.objects.live().order_by("-first_published_at")[:20]
+        return (
+            NewsPage.objects.live()
+            .select_related("author", "location", "main_image")
+            .order_by("-first_published_at")[:20]
+        )
 
     def item_title(self, item):
         return item.title

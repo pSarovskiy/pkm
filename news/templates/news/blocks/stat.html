@@ -1,0 +1,7 @@
+<div class="stat-block">
+    <div class="stat-value">{{ self.value }}</div>
+    <div class="stat-label">{{ self.label }}</div>
+    {% if self.description %}
+        <div class="stat-description">{{ self.description|richtext }}</div>
+    {% endif %}
+</div>

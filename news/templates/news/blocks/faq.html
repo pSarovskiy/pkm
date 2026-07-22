@@ -1,0 +1,8 @@
+<div class="faq-block">
+    {% for item in self.items %}
+        <details class="faq-item">
+            <summary class="faq-question">{{ item.question }}</summary>
+            <div class="faq-answer">{{ item.answer|richtext }}</div>
+        </details>
+    {% endfor %}
+</div>
