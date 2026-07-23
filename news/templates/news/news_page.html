@@ -1,5 +1,10 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags wagtailimages_tags %}
+{% load static wagtailcore_tags wagtailimages_tags %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'css/news.css' %}">
+{% endblock %}
 
 {% block body_class %}newspage{% endblock %}
 
@@ -15,85 +20,92 @@
 {% block content %}
 {% include "news/includes/breadcrumbs.html" %}
 
-<article class="container news-page">
-    <h1>{{ page.title }}</h1>
+<div class="container news-page">
+    <div class="row">
+        <div class="col">
+            <article>
+                <h1 class="display-5 fw-bolder">{{ page.title }}</h1>
 
-    <div class="news-page__meta">
-        {{ page.date }} · {{ page.reading_time_minutes }} мин чтения
-        {% if page.author %} · {{ page.author.name }}{% endif %}
-        {% if page.location %} · {{ page.location.name }}{% endif %}
-        · {{ page.views_count }} просмотров
+                {% if page.intro %}
+                    <h2 class="news-page__intro lead">{{ page.intro|richtext }}</h2>
+                {% endif %}
+
+                <div class="news-page__meta">
+                    {{ page.date }} · {{ page.reading_time_minutes }} мин чтения
+                    {% if page.author %} · {{ page.author.name }}{% endif %}
+                    {% if page.location %} · {{ page.location.name }}{% endif %}
+                    · {{ page.views_count }} просмотров
+                </div>
+
+                {% if page.categories.all %}
+                    <div class="news-page__categories">
+                        {% for cat in page.categories.all %}
+                            <a href="{{ page.get_parent.specific.url }}с/{{ cat.slug }}/">{{ cat.name }}</a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if page.main_image %}
+                    <picture class="d-block">
+                        <source media="(min-width: 1200px)" 
+                                srcset="{% image page.main_image original as img %}{{ img.url }}">
+                        <source media="(min-width: 768px)" 
+                                srcset="{% image page.main_image fill-1000x600 as img %}{{ img.url }}">
+                        <source media="(max-width: 767px)" 
+                                srcset="{% image page.main_image fill-600x350 as img %}{{ img.url }}">
+                        <img src="{% image page.main_image original as img %}{{ img.url }}" 
+                            alt="{{ page.title }}" class="img-fluid">
+                    </picture>
+                {% endif %}
+
+                {% include_block page.body %}
+
+                {% if page.gallery_images.all %}
+                    <div class="news-page__gallery">
+                        {% for item in page.gallery_images.all %}
+                            <figure>
+                                {% image item.image fill-300x200 %}
+                                {% if item.caption %}
+                                    <figcaption>{{ item.caption }}</figcaption>
+                                {% endif %}
+                            </figure>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if page.author %}
+                    <div class="news-page__author">
+                        {% if page.author.photo %}{% image page.author.photo fill-80x80 %}{% endif %}
+                        <div>
+                            <strong>{{ page.author.name }}</strong>
+                            {% if page.author.position %}<p>{{ page.author.position }}</p>{% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if page.source_name %}
+                    <div class="news-page__source">
+                        Источник:
+                        {% if page.source_url %}
+                            <a href="{{ page.source_url }}" rel="nofollow noopener" target="_blank">{{ page.source_name }}</a>
+                        {% else %}
+                            {{ page.source_name }}
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {% if page.tags.all %}
+                    <div class="news-page__tags">
+                        {% for tag in page.tags.all %}
+                            <a href="{{ page.get_parent.specific.url }}t/{{ tag.slug }}/">#{{ tag.name }}</a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </article>
+        </div>
+        <div class="col-lg-4"></div>
     </div>
-
-    {% if page.categories.all %}
-        <div class="news-page__categories">
-            {% for cat in page.categories.all %}
-                <a href="{{ page.get_parent.specific.url }}с/{{ cat.slug }}/">{{ cat.name }}</a>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    {% if page.main_image %}
-        <picture>
-            <source media="(min-width: 1200px)" 
-                    srcset="{% image page.main_image original as img %}{{ img.url }}">
-            <source media="(min-width: 768px)" 
-                    srcset="{% image page.main_image fill-1000x600 as img %}{{ img.url }}">
-            <source media="(max-width: 767px)" 
-                    srcset="{% image page.main_image fill-600x350 as img %}{{ img.url }}">
-            <img src="{% image page.main_image original as img %}{{ img.url }}" 
-                alt="{{ page.title }}" class="img-fluid">
-        </picture>
-    {% endif %}
-
-    {% if page.intro %}
-        <div class="news-page__intro">{{ page.intro }}</div>
-    {% endif %}
-
-    {% include_block page.body %}
-
-    {% if page.gallery_images.all %}
-        <div class="news-page__gallery">
-            {% for item in page.gallery_images.all %}
-                <figure>
-                    {% image item.image fill-300x200 %}
-                    {% if item.caption %}
-                        <figcaption>{{ item.caption }}</figcaption>
-                    {% endif %}
-                </figure>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    {% if page.author %}
-        <div class="news-page__author">
-            {% if page.author.photo %}{% image page.author.photo fill-80x80 %}{% endif %}
-            <div>
-                <strong>{{ page.author.name }}</strong>
-                {% if page.author.position %}<p>{{ page.author.position }}</p>{% endif %}
-            </div>
-        </div>
-    {% endif %}
-
-    {% if page.source_name %}
-        <p class="news-page__source">
-            Источник:
-            {% if page.source_url %}
-                <a href="{{ page.source_url }}" rel="nofollow noopener" target="_blank">{{ page.source_name }}</a>
-            {% else %}
-                {{ page.source_name }}
-            {% endif %}
-        </p>
-    {% endif %}
-
-    {% if page.tags.all %}
-        <p class="news-page__tags">
-            {% for tag in page.tags.all %}
-                <a href="{{ page.get_parent.specific.url }}t/{{ tag.slug }}/">#{{ tag.name }}</a>
-            {% endfor %}
-        </p>
-    {% endif %}
-</article>
+</div>
 
 {% if related_news %}
 <section class="news-page__related">

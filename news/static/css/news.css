@@ -1,0 +1,7 @@
+.container.news-page article > * {
+    margin-block-end: 1.5rem;
+}
+
+.container.news-page article {
+    font-size: 18px;
+}

@@ -217,7 +217,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10_000
 
 
 # Wagtail settings
-WAGTAIL_SITE_NAME = "Город не спит"
+WAGTAIL_SITE_NAME = "Рукери"
 
 # Search
 # https://docs.wagtail.org/en/stable/topics/search/backends.html

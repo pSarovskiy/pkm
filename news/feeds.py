@@ -1,6 +1,7 @@
 from django.contrib.syndication.views import Feed
 
 from .models import NewsPage
+from django.utils.html import strip_tags
 
 
 class NewsFeed(Feed):
@@ -19,7 +20,7 @@ class NewsFeed(Feed):
         return item.title
 
     def item_description(self, item):
-        return item.intro
+        return strip_tags(str(item.intro))
 
     def item_link(self, item):
         return item.full_url

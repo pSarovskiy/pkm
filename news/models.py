@@ -252,8 +252,8 @@ class NewsPage(Page):
     base_form_class = NewsPageForm
 
     date = models.DateField("Дата публикации", db_index=True)
-    intro = models.CharField("Анонс", max_length=250, blank=True)
-    body = StreamField("Основное содержание", NewsStreamBlock(), blank=True)   # <-- используется импортированный блок
+    intro = RichTextField("Анонс", blank=False)
+    body = StreamField(NewsStreamBlock(), verbose_name="Основное содержание", blank=True) 
 
     main_image = models.ForeignKey(
         Image,
